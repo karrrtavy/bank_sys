@@ -1,24 +1,27 @@
 {% load django_bootstrap5 %}
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Вход</title>
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
-</head>
-<body>
-<div class="container mt-5">
-    <h2 class="mb-4">Вход</h2>
-    <form method="post" novalidate>
-        {% csrf_token %}
-        {% bootstrap_form form %}
-        <button type="submit" class="btn btn-primary">Войти</button>
-    </form>
-    <p class="mt-3">
-        Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>
-    </p>
-</div>
-</body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Вход</title>
+        {% bootstrap_css %}
+        {% bootstrap_javascript %}
+    </head>
+    <body>
+        <div class="container mt-5">
+            <h2 class="mb-4">Вход</h2>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% bootstrap_form form %}
+                <button type="submit" class="btn btn-primary">Войти</button>
+            </form>
+            <p class="mt-3">
+                Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>
+            </p>
+            <p class="mt-3">
+                Вернуться <a href="{% url 'index' %}">на главную</a>    
+            </p>
+        </div>
+    </body>
 </html>
