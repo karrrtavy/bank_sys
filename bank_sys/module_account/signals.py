@@ -1,14 +1,12 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from models import Account
-from module_card.models import Card
+from module_account.models import Account
+from .models import User
 
-@receiver(post_save, sender=Account)
-def create_initial_card(sender, instance, created, **kwargs):
+@receiver(post_save, sender=User)
+def create_user_account(sender, instance, created, **kwargs):
     if created:
-        Card.objects.create(
-            account=instance,
+        Account.objects.create(
+            user=instance,
             is_primary=True
         )
-        instance.balance += 50000
-        instance.save()

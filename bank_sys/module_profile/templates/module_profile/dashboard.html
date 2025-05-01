@@ -1,0 +1,32 @@
+{% extends "module_index/index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Добро пожаловать, {{ user.get_full_name }}!</h2>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <h4>Ваши счета</h4>
+            <ul class="list-group">
+                {% for account in accounts %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>{{ account.number }}</span>
+                    <span>{{ account.balance }} ₽</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <div class="col-md-6">
+            <h4>Ваши карты</h4>
+            <ul class="list-group">
+                {% for card in cards %}
+                <li class="list-group-item">
+                    **** **** **** {{ card.number|slice:"-4:" }}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

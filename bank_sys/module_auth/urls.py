@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.urls import path
-from . import views
+from .views import Registration, Login
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('register/', views.register, name='register'),
-    path('login/', views.login, name='login'),
+    path('register/', Registration.as_view(), name='register'),
+    path('login/', Login.as_view(), name='login'),
 ]
