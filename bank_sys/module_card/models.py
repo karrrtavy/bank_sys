@@ -1,3 +1,23 @@
 from django.db import models
+from module_account.models import Account
+from random import random
+import string
 
 # Create your models here.
+class Card(models.Model):
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    number = models.CharField(max_length=16, unique=True, editable=False)
+    is_primary = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.number:
+            self.number = self.generate_card_number()
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def generate_card_number(cls):
+        while True:
+            number = '4' + ''.join(random.choices(string.digits, k=15))
+            if not cls.objects.filter(number=number).exists():
+                return number
