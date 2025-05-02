@@ -20,8 +20,15 @@
                         <p class="display-6">
                             {{ main_account.balance|intcomma }} ₽
                         </p>
+                        <a href="{% url 'account_detail' account.id %}">
+                            <strong>№ {{ account.number }}</strong>
+                        </a>
                     {% else %}
                         <p>Счет не найден.</p>
+                        <form method="post" action="{% url 'account_create' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary mt-2">Создать новый счет</button>
+                        </form>
                     {% endif %}
                 </div>
             </div>

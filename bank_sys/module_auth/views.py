@@ -16,7 +16,6 @@ class Registration(CreateView):
         user = form.save(commit=False)
         user.set_password(form.cleaned_data['password'])
         user.save()
-        from django.contrib.auth import get_backends
         backend = get_backends()[0]
         login(self.request, user, backend=backend.__module__ + '.' + backend.__class__.__name__)
         return redirect(self.get_success_url())

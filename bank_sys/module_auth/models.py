@@ -38,3 +38,6 @@ class User (AbstractUser):
         for field in fields_to_validate:
             if field:
                 name_regex(field)
+
+    def get_full_name(self):
+        return f"{self.surname} {self.name} {self.patronymic}".strip()
