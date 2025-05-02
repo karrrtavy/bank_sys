@@ -135,3 +135,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = 'profile'
 LOGOUT_REDIRECT_URL = 'index'
 AUTH_USER_MODEL = 'module_auth.User'
+
+AUTHENTICATION_BACKENDS = [
+    'module_auth.backends.PhoneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]

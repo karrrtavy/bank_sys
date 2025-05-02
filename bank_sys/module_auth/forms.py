@@ -34,6 +34,16 @@ class RegistrationForm(forms.ModelForm):
             'patronymic': 'Только русские буквы',
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        repeat_password = cleaned_data.get('repeat_password')
+        
+        if password and repeat_password and password != repeat_password:
+            self.add_error('repeat_password', 'Пароли не совпадают')
+        
+        return cleaned_data
+
 class CustomLoginForm(AuthenticationForm):
     username = forms.CharField(
         label="Логин или телефон",

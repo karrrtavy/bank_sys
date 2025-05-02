@@ -16,7 +16,10 @@ class User (AbstractUser):
     income = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(0)],
+        default=0,
+        blank=True,
+        null=True
     )
     surname = models.CharField(max_length=50, blank=True)
     name = models.CharField(max_length=50, blank=True)
