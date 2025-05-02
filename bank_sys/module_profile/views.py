@@ -2,6 +2,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from module_account.models import Account
 from module_card.models import Card
+from django.views.generic import ListView
+from module_transfers.models import TransactionHistory
 
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = 'module_profile/dashboard.html'
@@ -25,3 +27,12 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         context['main_card'] = main_card
 
         return context
+    
+class HistoryView(LoginRequiredMixin, ListView):
+    model = TransactionHistory
+    template_name = 'module_profile/history.html'
+    context_object_name = 'history'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return TransactionHistory.objects.filter(user=self.request.user)

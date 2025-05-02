@@ -1,0 +1,41 @@
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}История переводов{% endblock %}</title>
+    {% load django_bootstrap5 %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+</head>
+
+{% load humanize %}
+{% block content %}
+<div class="container mt-4">
+    <h2>История операций</h2>
+    <a href="{% url 'profile' %}" class="btn btn-secondary mb-3">Назад в профиль</a>
+    <div class="list-group">
+        {% for item in history %}
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between">
+                <span>
+                    {% if item.operation_type == 'transfer' %}
+                        {{ item.description }}
+                    {% elif item.operation_type == 'account_create' %}
+                        {{ item.description }}
+                    {% elif item.operation_type == 'card_create' %}
+                        {{ item.description }}
+                    {% endif %}
+                </span>
+                <span class="text-muted">{{ item.created_at|date:"d.m.Y H:i" }}</span>
+            </div>
+            {% if item.amount %}
+                <div>
+                    <span class="fw-bold">{% if item.operation_type == 'transfer' %}{{ item.amount|intcomma }} ₽{% endif %}</span>
+                </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="list-group-item">Нет операций</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
