@@ -1,6 +1,6 @@
 from django.db import models
 from module_account.models import Account
-from random import random
+import random
 import string
 
 # Create your models here.
@@ -13,6 +13,11 @@ class Card(models.Model):
     def save(self, *args, **kwargs):
         if not self.number:
             self.number = self.generate_card_number()
+
+        if not self.pk:
+            if not Card.objects.filter(account=self.account, is_primary=True).exists():
+                self.is_primary = True
+
         super().save(*args, **kwargs)
 
     @classmethod

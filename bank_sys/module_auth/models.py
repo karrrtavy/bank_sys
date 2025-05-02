@@ -41,3 +41,8 @@ class User (AbstractUser):
 
     def get_full_name(self):
         return f"{self.surname} {self.name} {self.patronymic}".strip()
+    
+    def save(self, *args, **kwargs):
+        if not self.username:
+            self.username = self.phone
+        super().save(*args, **kwargs)

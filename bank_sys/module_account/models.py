@@ -1,6 +1,6 @@
 from django.db import models
 from module_auth.models import User
-from random import random
+import random
 import string
 
 # Create your models here.
@@ -14,6 +14,11 @@ class Account(models.Model):
     def save(self, *args, **kwargs):
         if not self.number:
             self.number = self.generate_account_number()
+
+        if not self.pk:
+            if not Account.objects.filter(user=self.user, is_primary=True).exists():
+                self.is_primary = True
+
         super().save(*args, **kwargs)
 
     @classmethod

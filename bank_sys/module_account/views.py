@@ -2,14 +2,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from module_card.models import Card
 from .models import Account
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import DeleteView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib import messages
 
 # Create your views here.
-from django.views import View
-from django.shortcuts import render, get_object_or_404, redirect
-from module_card.models import Card
-from .models import Account
-
 class AccountDetailView(LoginRequiredMixin, View):
     def get(self, request, pk):
         account = get_object_or_404(Account, pk=pk, user=request.user)
@@ -20,8 +18,13 @@ class AccountDetailView(LoginRequiredMixin, View):
         })
     
 class AccountCreateView(LoginRequiredMixin, View):
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+        user_accounts_count = Account.objects.filter(user=request.user).count()
+        if user_accounts_count >= 5:
+            messages.error(request, "Вы не можете создать больше 5 счетов.")
+            return redirect('profile')
         Account.objects.create(user=request.user)
+        messages.success(request, "Новый счет успешно создан.")
         return redirect('profile')
     
 class CardCreateView(LoginRequiredMixin, View):
@@ -30,3 +33,12 @@ class CardCreateView(LoginRequiredMixin, View):
         if Card.objects.filter(account=account).count() < 5:
             Card.objects.create(account=account)
         return redirect('account_detail', pk=account.id)
+    
+class AccountDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Account
+    template_name = 'module_account/account_confirm_delete.html'
+    success_url = reverse_lazy('profile')
+
+    def test_func(self):
+        account = self.get_object()
+        return account.user == self.request.user
