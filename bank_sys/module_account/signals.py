@@ -33,9 +33,3 @@ def create_user_account(sender, instance, created, **kwargs):
             source_account=account,
             card=Card
         )
-
-@receiver(post_save, sender=Account)
-def create_card_for_new_account(sender, instance, created, **kwargs):
-    if created:
-        if not Card.objects.filter(account=instance).exists():
-            Card.objects.create(account=instance, is_primary=True)
