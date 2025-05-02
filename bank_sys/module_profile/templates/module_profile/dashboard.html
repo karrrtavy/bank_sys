@@ -1,31 +1,71 @@
-{% extends "module_index/index.html" %}
+{% extends "index.html" %}
+{% load humanize %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Добро пожаловать, {{ user.get_full_name }}!</h2>
-    
+    <h2>Добро пожаловать, {{ user.get_full_name|default:user.username }}!</h2>
+    <a href="{% url 'logout' %}" class="btn btn-danger">Выйти</a>
+
     <div class="row mt-4">
         <div class="col-md-6">
-            <h4>Ваши счета</h4>
-            <ul class="list-group">
-                {% for account in accounts %}
-                <li class="list-group-item d-flex justify-content-between">
-                    <span>{{ account.number }}</span>
-                    <span>{{ account.balance }} ₽</span>
-                </li>
-                {% endfor %}
-            </ul>
+            <div class="card mb-3">
+                <div class="card-header">
+                    Основной счет
+                </div>
+                <div class="card-body">
+                    {% if main_account %}
+                        <h5 class="card-title">№ {{ main_account.number }}</h5>
+                        <p class="display-6">
+                            {{ main_account.balance|intcomma }} ₽
+                        </p>
+                    {% else %}
+                        <p>Счет не найден.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        
+
         <div class="col-md-6">
-            <h4>Ваши карты</h4>
-            <ul class="list-group">
-                {% for card in cards %}
-                <li class="list-group-item">
-                    **** **** **** {{ card.number|slice:"-4:" }}
-                </li>
+            <div class="card mb-3">
+                <div class="card-header">
+                    Основная карта
+                </div>
+                <div class="card-body">
+                    {% if main_card %}
+                        <h5 class="card-title">
+                            **** **** **** {{ main_card.number|slice:"-4:" }}
+                        </h5>
+                        <p class="text-muted">
+                            Создана {{ main_card.created_at|date:"d.m.Y H:i" }}
+                        </p>
+                    {% else %}
+                        <p>Карта не найдена.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>Все ваши счета</h4>
+            <div class="list-group">
+                {% for account in accounts %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>№ {{ account.number }}</strong>
+                        {% if account.is_primary %}
+                        <span class="badge bg-primary ms-2">Основной</span>
+                        {% endif %}
+                    </div>
+                    <span class="badge bg-success rounded-pill">
+                        {{ account.balance|intcomma }} ₽
+                    </span>
+                </div>
+                {% empty %}
+                <div class="list-group-item">Нет счетов</div>
                 {% endfor %}
-            </ul>
+            </div>
         </div>
     </div>
 </div>

@@ -1,7 +1,6 @@
-from django.contrib import admin
 from django.urls import path
-from . import views
+from .views import ProfileView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('profile/', ProfileView.as_view(), name='profile'),
 ]
