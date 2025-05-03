@@ -42,3 +42,19 @@ class AccountDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         account = self.get_object()
         return account.user == self.request.user
+    
+class CardDeleteView(LoginRequiredMixin, View):
+    def post(self, request, card_id):
+        card = get_object_or_404(Card, id=card_id, account__user=request.user)
+        
+        if Card.objects.filter(account=card.account).count() <= 1:
+            messages.error(request, "Нельзя удалить последнюю карту")
+            return redirect('account_detail', pk=card.account.id)
+            
+        if card.is_primary:
+            messages.error(request, "Нельзя удалить основную карту")
+            return redirect('account_detail', pk=card.account.id)
+            
+        card.delete()
+        messages.success(request, "Карта успешно удалена")
+        return redirect('account_detail', pk=card.account.id)

@@ -18,14 +18,15 @@
             <div class="d-flex justify-content-between">
                 <span>
                     {% if item.operation_type == 'transfer' %}
-                        {{ item.description }}
+                        <p>Создан счет{{ item.description }}</p>
                     {% elif item.operation_type == 'account_create' %}
-                        {{ item.description }}
+                        <p>Создан счет{{ item.description }}</p>
                     {% elif item.operation_type == 'card_create' %}
-                        {{ item.description }}
+                        <p>Создан счет{{ item.description }}</p>
                     {% endif %}
                 </span>
-                <span class="text-muted">{{ item.created_at|date:"d.m.Y H:i" }}</span>
+
+                <span class="text-muted">{{ item.description }}&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;{{ item.timestamp|date:"d.m.Y H:i" }}</span>
             </div>
             {% if item.amount %}
                 <div>

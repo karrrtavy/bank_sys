@@ -18,6 +18,12 @@
                     <span class="badge bg-primary ms-2">Основная</span>
                 {% endif %}
             </span>
+            {% if cards|length > 1 and not card.is_primary %}
+                <form method="post" action="{% url 'card_delete' card.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
+                </form>
+            {% endif %}
         </li>
     {% empty %}
         <li class="list-group-item text-muted">Карт пока нет</li>
