@@ -7,40 +7,100 @@
     {% bootstrap_javascript %}
 </head>
 
-<h3>Карты по счету №{{ account.number }}</h3>
+{% block content %}
+    <div class="container mt-4">
+        <h3>
+            Карты по счету 
+            <span id="account-number">№{{ account.number }}</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="toggle-account">Скрыть номер</button>
+            <form method="get" action="{% url 'account_delete' account.id %}" class="mb-3">
+                <button type="submit" class="btn btn-danger w-100">Удалить счет</button>
+            </form>
+        </h3>
+        <p><strong>Общий баланс по картам:</strong> {{ account.cards_total_balance|floatformat:2 }} ₽</p>
+        
+        <ul class="list-group mb-3">
+            {% for card in cards %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                        <span class="fw-bold">
+                            <span class="card-number">**** **** **** {{ card.number|slice:"-4:" }}</span>
+                            <span class="full-card-number d-none">{{ card.number }}</span>
+                        </span>
+                        {% if card.is_primary %}
+                            <span class="badge bg-primary ms-2">Основная</span>
+                        {% endif %}
+                        <span class="badge bg-info ms-2">Баланс: {{ card.balance|floatformat:2 }} ₽</span>
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary toggle-card">Показать номер</button>
+                    {% if cards|length < 5 and not card.is_primary %}
+                        <form method="post" action="{% url 'card_delete' card.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
+                        </form>
+                    {% endif %}
+                    {% if not card.is_primary %}
+                        <form method="post" action="{% url 'card_make_primary' card.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-warning ms-2">Сделать основной</button>
+                        </form>
+                    {% endif %}
+                </li>
+            {% empty %}
+                <li class="list-group-item text-muted">Карт пока нет</li>
+            {% endfor %}
+        </ul>
 
-<ul class="list-group mb-3">
-    {% for card in cards %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>
-                <span class="fw-bold">**** **** **** {{ card.number|slice:"-4:" }}</span>
-                {% if card.is_primary %}
-                    <span class="badge bg-primary ms-2">Основная</span>
-                {% endif %}
-            </span>
-            {% if cards|length > 1 and not card.is_primary %}
-                <form method="post" action="{% url 'card_delete' card.id %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
-                </form>
-            {% endif %}
-        </li>
-    {% empty %}
-        <li class="list-group-item text-muted">Карт пока нет</li>
-    {% endfor %}
-</ul>
-
-{% if cards|length < 5 %}
-    <form method="post" action="{% url 'card_create' account.id %}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-success w-100">Выпустить новую карту</button>
-    </form>
-{% else %}
-    <div class="alert alert-danger mt-2" role="alert">
-        Максимум 5 карт на счет!
+        {% if cards|length < 5 %}
+            <form method="post" action="{% url 'card_create' account.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success w-100">Выпустить новую карту</button>
+            </form>
+        {% else %}
+            <div class="alert alert-danger mt-2" role="alert">
+                Максимум 5 карт на счет!
+            </div>
+        {% endif %}
+        
+        <p class="mt-3">
+            Вернуться в <a href="{% url 'profile' %}">личный кабинет</a>
+        </p>
     </div>
-{% endif %}
 
-<p class="mt-3">
-    Вернуться в <a href="{% url 'profile' %}">личный кабинет</a>
-</p>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Скрыть/показать номер счета
+            const accountNumber = document.getElementById('account-number');
+            const toggleAccountBtn = document.getElementById('toggle-account');
+            let accountHidden = false;
+            toggleAccountBtn.addEventListener('click', function() {
+                if (!accountHidden) {
+                    accountNumber.textContent = '••••••••••••••••••••';
+                    toggleAccountBtn.textContent = 'Показать номер';
+                } else {
+                    accountNumber.textContent = '№{{ account.number }}';
+                    toggleAccountBtn.textContent = 'Скрыть номер';
+                }
+                accountHidden = !accountHidden;
+            });
+        
+            // Скрыть/показать номер карты
+            document.querySelectorAll('.toggle-card').forEach(function(btn, idx) {
+                btn.addEventListener('click', function() {
+                    const li = btn.closest('li');
+                    const cardNumberSpan = li.querySelector('.card-number');
+                    const fullCardNumberSpan = li.querySelector('.full-card-number');
+                    if (cardNumberSpan.classList.contains('d-none')) {
+                        cardNumberSpan.classList.remove('d-none');
+                        fullCardNumberSpan.classList.add('d-none');
+                        btn.textContent = 'Скрыть номер';
+                    } else {
+                        cardNumberSpan.classList.add('d-none');
+                        fullCardNumberSpan.classList.remove('d-none');
+                        btn.textContent = 'Показать номер';
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

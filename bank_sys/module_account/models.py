@@ -27,3 +27,10 @@ class Account(models.Model):
             number = ''.join(random.choices(string.digits, k=20))
             if not cls.objects.filter(number=number).exists():
                 return number
+            
+    def __str__(self):
+        return f"№{self.number} (Баланс: {self.balance} ₽)"
+    
+    @property
+    def cards_total_balance(self):
+        return sum(card.balance for card in self.card_set.all())

@@ -1,5 +1,6 @@
 from module_card.models import Card
 from module_account.signals import TransactionHistory
+from .models import TransactionHistory
 
 @staticmethod
 def transfer_by_card(sender_card, receiver_card_number, amount):
@@ -18,7 +19,7 @@ def transfer_by_card(sender_card, receiver_card_number, amount):
     
     TransactionHistory.objects.create(
         user=sender_card.account.user,
-        transaction_type='transfer',
+        transaction_type='transfer_out',
         amount=amount,
         description=f'Перевод на карту ****{receiver_card.number[-4:]}',
         source_account=sender_card.account,
@@ -28,7 +29,7 @@ def transfer_by_card(sender_card, receiver_card_number, amount):
     
     TransactionHistory.objects.create(
         user=receiver_card.account.user,
-        transaction_type='transfer',
+        transaction_type='transfer_in',
         amount=amount,
         description=f'Получение от карты ****{sender_card.number[-4:]}',
         source_account=receiver_card.account,

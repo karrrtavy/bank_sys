@@ -46,6 +46,7 @@ class AccountDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 class CardDeleteView(LoginRequiredMixin, View):
     def post(self, request, card_id):
         card = get_object_or_404(Card, id=card_id, account__user=request.user)
+        cards_qs = Card.objects.filter(account=card.account)
         
         if Card.objects.filter(account=card.account).count() <= 1:
             messages.error(request, "Нельзя удалить последнюю карту")
@@ -54,7 +55,33 @@ class CardDeleteView(LoginRequiredMixin, View):
         if card.is_primary:
             messages.error(request, "Нельзя удалить основную карту")
             return redirect('account_detail', pk=card.account.id)
+        
+        main_card = cards_qs.filter(is_primary=True).first()
+        if main_card and main_card != card:
+            main_card.balance += card.balance
+            main_card.save()
             
         card.delete()
         messages.success(request, "Карта успешно удалена")
         return redirect('account_detail', pk=card.account.id)
+    
+class CardMakePrimaryView(LoginRequiredMixin, View):
+    def post(self, request, card_id):
+        card = get_object_or_404(Card, id=card_id, account__user=request.user)
+        account = card.account
+
+        Card.objects.filter(account=account, is_primary=True).update(is_primary=False)
+        card.is_primary = True
+        card.save()
+
+        messages.success(request, "Карта сделана основной.")
+        return redirect('account_detail', pk=account.id)
+    
+class AccountMakePrimaryView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        account = get_object_or_404(Account, pk=pk, user=request.user)
+        Account.objects.filter(user=request.user, is_primary=True).update(is_primary=False)
+        account.is_primary = True
+        account.save()
+        messages.success(request, f"Счет №{account.number} теперь основной.")
+        return redirect('profile')

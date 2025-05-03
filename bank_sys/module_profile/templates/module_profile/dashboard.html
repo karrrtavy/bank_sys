@@ -26,7 +26,7 @@
                     {% if main_account %}
                         <h5 class="card-title">№ {{ main_account.number }}</h5>
                         <p class="display-6">
-                            {{ main_account.balance|intcomma }} ₽
+                            {{ main_account.cards_total_balance|floatformat:2 }} ₽
                         </p>
                     {% else %}
                         <p>Счет не найден.</p>
@@ -56,6 +56,9 @@
                         <p class="text-muted">
                             Создана {{ main_card.created_at|date:"d.m.Y H:i" }}
                         </p>
+                        <p class="display-6">
+                            {{ main_card.balance|floatformat:2 }} ₽
+                        </p>
                     {% else %}
                         <p>Карта не найдена.</p>
                     {% endif %}
@@ -73,22 +76,27 @@
             <h4>Все ваши счета</h4>
             <div class="list-group">
                 {% for account in accounts %}
-                <div class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <a href="{% url 'account_detail' account.id %}">
-                            <strong>№ {{ account.number }}</strong>
-                        </a>
-                        {% if account.is_primary %}
-                            <span class="badge bg-primary ms-2">Основной</span>
-                        {% endif %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5>
+                            Счет №{{ account.number }}
+                            {% if account.is_primary %}
+                                <span class="badge bg-primary ms-2">Основной</span>
+                            {% elif accounts|length > 1 %}
+                                <form method="post" action="{% url 'account_make_primary' account.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-warning ms-2">Сделать основной</button>
+                                </form>
+                            {% endif %}
+                        </h5>
+                        <p>
+                            Баланс по всем картам: <strong>{{ account.cards_total_balance|floatformat:2 }} ₽</strong>
+                        </p>
+                        <a href="{% url 'account_detail' account.pk %}" class="btn btn-outline-primary btn-sm">Подробнее</a>
                     </div>
-                    <span class="badge bg-success rounded-pill">
-                        {{ account.balance|intcomma }} ₽
-                    </span>
-                    <a href="{% url 'account_delete' account.id %}" class="btn btn-sm btn-outline-danger">Удалить</a>
                 </div>
                 {% empty %}
-                <div class="list-group-item">Нет счетов</div>
+                    <p>Счет не найден.</p>
                 {% endfor %}
             </div>
         </div>

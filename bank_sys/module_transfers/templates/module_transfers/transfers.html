@@ -9,12 +9,43 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Перевод средств</h2>
-    <form method="post" novalidate>
+    <form method="post" novalidate id="transfer-form">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Перевести</button>
+        <div class="mb-3">
+            {% bootstrap_field form.transfer_from %}
+        </div>
+        <div class="mb-3" id="account-field">
+            {% bootstrap_field form.sender_account %}
+        </div>
+        <div class="mb-3" id="card-field">
+            {% bootstrap_field form.sender_card %}
+        </div>
+        <div class="mb-3">
+            {% bootstrap_field form.transfer_to %}
+        </div>
+        <div class="mb-3">
+            {% bootstrap_field form.receiver_number %}
+        </div>
+        <div class="mb-3">
+            {% bootstrap_field form.amount %}
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Перевести</button>
     </form>
-    <a href="{% url 'profile' %}" class="btn btn-link mt-3">Назад в профиль</a>
+
+    <p class="mt-3">
+        Вернуться в <a href="{% url 'profile' %}">личный кабинет</a>
+    </p>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function toggleSenderFields() {
+        var from = document.getElementById('id_transfer_from').value;
+        document.getElementById('account-field').style.display = (from === 'account') ? '' : 'none';
+        document.getElementById('card-field').style.display = (from === 'card') ? '' : 'none';
+    }
+    toggleSenderFields();
+    document.getElementById('id_transfer_from').addEventListener('change', toggleSenderFields);
+});
+</script>
 {% endblock %}

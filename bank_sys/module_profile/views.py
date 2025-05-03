@@ -18,7 +18,6 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         context['accounts'] = accounts
         context['cards'] = cards
 
-        # Также можно передать основной счет и карту, если нужно
         main_account = accounts.filter(is_primary=True).first()
         main_card = None
         if main_account:

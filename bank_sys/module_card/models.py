@@ -8,7 +8,11 @@ class Card(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     number = models.CharField(max_length=16, unique=True, editable=False)
     is_primary = models.BooleanField(default=False)
+    balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.number} ('Баланс: {self.balance:.2f} ₽')"
 
     def save(self, *args, **kwargs):
         if not self.number:
