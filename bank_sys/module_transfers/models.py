@@ -12,6 +12,10 @@ class TransactionHistory(models.Model):
         ('card_delete', 'Удаление карты'),
         ('transfer_in', 'Зачисление'),
         ('transfer_out', 'Списание'),
+        ('holding_deposit', 'Пополнение вклада'),
+        ('holding_withdraw', 'Изъятие с вклада'),
+        ('holding_interest', 'Начисление процентов'),
+        ('holding_close', 'Закрытие вклада'),
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)

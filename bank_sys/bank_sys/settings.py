@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'module_account.apps.ModuleAccountConfig',
     'module_card.apps.ModuleCardConfig',
     'module_transfers.apps.ModuleTransfersConfig',
+    'module_holding.apps.ModuleHoldingConfig',
 ]
 
 MIDDLEWARE = [
@@ -55,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'module_holding.middleware.HoldingInterestMiddleware'
 ]
 
 ROOT_URLCONF = 'bank_sys.urls'

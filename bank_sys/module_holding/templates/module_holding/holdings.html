@@ -1,0 +1,76 @@
+{% load django_bootstrap5 %}
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Мои вклады{% endblock %}</title>
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+</head>
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Мои вклады</h2>
+    
+    <p class="mt-3">
+        <a href="{% url 'profile' %}" class="btn btn-outline-secondary">Вернуться в личный кабинет</a>
+    </p>
+    
+    {% if not has_active_holding %}
+    <div class="card mb-4">
+        <div class="card-header">
+            Создание нового вклада
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {% bootstrap_form create_form %}
+                <button type="submit" name="create_holding" class="btn btn-success">Создать вклад</button>
+            </form>
+            <p class="mt-2 text-muted">Процентная ставка: 10% ежедневно</p>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% for holding in holdings %}
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Вклад №{{ holding.id }}</span>
+            <span class="badge {% if holding.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                {% if holding.is_active %}Активен{% else %}Закрыт{% endif %}
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Баланс:</strong> {{ holding.balance|floatformat:2 }} ₽</p>
+                    <p><strong>Счет:</strong> №{{ holding.account.number }}</p>
+                    <p><strong>Дата создания:</strong> {{ holding.created_at|date:"d.m.Y H:i" }}</p>
+                </div>
+                <div class="col-md-6">
+                    {% if holding.is_active %}
+                    <form method="post" class="mb-3">
+                        {% csrf_token %}
+                        {% bootstrap_form deposit_form %}
+                        <button type="submit" name="deposit" class="btn btn-primary w-100">Пополнить вклад</button>
+                    </form>
+                    <form method="post" class="mb-3">
+                        {% csrf_token %}
+                        {% bootstrap_form withdraw_form %}
+                        <button type="submit" name="withdraw" class="btn btn-warning w-100">Изъять средства</button>
+                    </form>
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" name="close" class="btn btn-danger w-100">Закрыть вклад</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-info">
+        У вас пока нет вкладов
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

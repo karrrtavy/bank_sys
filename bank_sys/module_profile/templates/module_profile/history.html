@@ -42,6 +42,51 @@
                     </div>
                     <small class="text-muted">{{ item.timestamp|date:"d.m.Y H:i" }}</small>
                 </div>
+            {% elif item.transaction_type == 'holding_deposit' %}
+                <div class="list-group-item list-group-item-info mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Пополнение вклада</strong>
+                        </div>
+                        <span class="fw-bold text-info">-{{ item.amount }} ₽</span>
+                    </div>
+                    <small class="text-muted">{{ item.timestamp|date:"d.m.Y H:i" }}</small>
+                </div>
+                {% elif item.transaction_type == 'holding_withdraw' %}
+                <div class="list-group-item list-group-item-success mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Изъятие с вклада</strong>
+                        </div>
+                        <span class="fw-bold text-success">+{{ item.amount }} ₽</span>
+                    </div>
+                    <small class="text-muted">{{ item.timestamp|date:"d.m.Y H:i" }}</small>
+                </div>
+                {% elif item.transaction_type == 'holding_interest' %}
+                <div class="list-group-item list-group-item-warning mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Начисление процентов по вкладу</strong>
+                        </div>
+                        <span class="fw-bold text-warning">+{{ item.amount }} ₽</span>
+                    </div>
+                    <small class="text-muted">{{ item.timestamp|date:"d.m.Y H:i" }}</small>
+                </div>
+                {% elif item.transaction_type == 'holding_create' %}
+                <div class="list-group-item mb-2">
+                    <div>Создание нового вклада</div>
+                    <small class="text-muted">{{ item.timestamp|date:"d.m.Y H:i" }}</small>
+                </div>
+                {% elif item.transaction_type == 'holding_close' %}
+                <div class="list-group-item mb-2">
+                    <div>Закрытие вклада</div>
+                    <small class="text-muted">{{ item.timestamp|date:"d.m.Y H:i" }}</small>
+                </div>
+                {% elif item.transaction_type == 'holding_delete' %}
+                <div class="list-group-item mb-2">
+                    <div>{{ item.description }}</div>
+                    <small class="text-muted">{{ item.timestamp|date:"d.m.Y H:i" }}</small>
+                </div>
             {% else %}
                 <div class="list-group-item mb-2">
                     <div>{{ item.description }}</div>
