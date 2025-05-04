@@ -1,5 +1,5 @@
 from django import forms
-from .models import Holding
+from .models import Holding, CreditCard
 from module_account.models import Account
 from django.core.validators import MinValueValidator
 
@@ -27,4 +27,22 @@ class HoldingWithdrawForm(forms.Form):
         decimal_places=2,
         validators=[MinValueValidator(0.01)],
         label="Сумма изъятия"
+    )
+
+class CreditCardCreateForm(forms.ModelForm):
+    class Meta:
+        model = CreditCard
+        fields = ['account']
+        
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+        self.fields['account'].queryset = Account.objects.filter(user=user)
+
+class CreditCardPayForm(forms.Form):
+    amount = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
+        label="Сумма погашения"
     )

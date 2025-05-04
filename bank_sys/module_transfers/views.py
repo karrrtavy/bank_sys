@@ -5,6 +5,7 @@ from module_account.models import Account
 from module_card.models import Card
 from .forms import TransferForm
 from .models import TransactionHistory
+from module_holding.models import CreditCard
 
 @login_required
 def transfer_view(request):
@@ -91,6 +92,16 @@ def transfer_view(request):
                 target_account=receiver_account if transfer_to == 'account' else None,
                 amount=amount
             )
+
+            has_negative_credit = CreditCard.objects.filter(
+            user=request.user, 
+            is_active=True, 
+            balance__lt=0
+            ).exists()
+    
+            if has_negative_credit:
+                messages.error(request, "У вас есть непогашенный кредит. Переводы запрещены.")
+                return redirect('profile')
 
             messages.success(request, f"Перевод {amount} ₽ на {receiver_label} выполнен успешно.")
             return redirect('profile')

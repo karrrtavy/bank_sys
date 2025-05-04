@@ -9,68 +9,146 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Мои вклады</h2>
+    <h2>Мои вклады и кредиты</h2>
     
     <p class="mt-3">
         <a href="{% url 'profile' %}" class="btn btn-outline-secondary">Вернуться в личный кабинет</a>
     </p>
     
-    {% if not has_active_holding %}
     <div class="card mb-4">
         <div class="card-header">
-            Создание нового вклада
+            <h3>Кредитные карты</h3>
         </div>
         <div class="card-body">
-            <form method="post">
-                {% csrf_token %}
-                {% bootstrap_form create_form %}
-                <button type="submit" name="create_holding" class="btn btn-success">Создать вклад</button>
-            </form>
-            <p class="mt-2 text-muted">Процентная ставка: 10% ежедневно</p>
-        </div>
-    </div>
-    {% endif %}
-    
-    {% for holding in holdings %}
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span>Вклад №{{ holding.id }}</span>
-            <span class="badge {% if holding.is_active %}bg-success{% else %}bg-secondary{% endif %}">
-                {% if holding.is_active %}Активен{% else %}Закрыт{% endif %}
-            </span>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <p><strong>Баланс:</strong> {{ holding.balance|floatformat:2 }} ₽</p>
-                    <p><strong>Счет:</strong> №{{ holding.account.number }}</p>
-                    <p><strong>Дата создания:</strong> {{ holding.created_at|date:"d.m.Y H:i" }}</p>
+            {% if not has_active_credit_card %}
+            <div class="mb-4">
+                <h4>Создание кредитной карты</h4>
+                <form method="post">
+                    {% csrf_token %}
+                    {% bootstrap_form credit_card_form %}
+                    <button type="submit" name="create_credit_card" class="btn btn-success">
+                        Создать кредитную карту (лимит: {{ request.user.income|floatformat:2 }} ₽)
+                    </button>
+                </form>
+                <p class="mt-2 text-muted">Процентная ставка: 15% ежеминутно</p>
+            </div>
+            {% endif %}
+            
+            {% for card in credit_cards %}
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Кредитная карта ****{{ card.number|slice:"-4:" }}</span>
+                    <span class="badge {% if card.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                        {% if card.is_active %}Активна{% else %}Закрыта{% endif %}
+                    </span>
                 </div>
-                <div class="col-md-6">
-                    {% if holding.is_active %}
-                    <form method="post" class="mb-3">
-                        {% csrf_token %}
-                        {% bootstrap_form deposit_form %}
-                        <button type="submit" name="deposit" class="btn btn-primary w-100">Пополнить вклад</button>
-                    </form>
-                    <form method="post" class="mb-3">
-                        {% csrf_token %}
-                        {% bootstrap_form withdraw_form %}
-                        <button type="submit" name="withdraw" class="btn btn-warning w-100">Изъять средства</button>
-                    </form>
-                    <form method="post">
-                        {% csrf_token %}
-                        <button type="submit" name="close" class="btn btn-danger w-100">Закрыть вклад</button>
-                    </form>
-                    {% endif %}
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Баланс:</strong> {{ card.balance|floatformat:2 }} ₽</p>
+                            <p><strong>Кредитный лимит:</strong> {{ card.credit_limit|floatformat:2 }} ₽</p>
+                            <p><strong>Доступно:</strong> 
+                                {% if card.balance < 0 %}
+                                    {{ card.credit_limit|add:card.balance|floatformat:2 }} ₽
+                                {% else %}
+                                    {{ card.credit_limit|floatformat:2 }} ₽
+                                {% endif %}
+                            </p>
+                            <p><strong>Счет:</strong> №{{ card.account.number }}</p>
+                            <p><strong>Дата создания:</strong> {{ card.created_at|date:"d.m.Y H:i" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            {% if card.is_active %}
+                            <form method="post" class="mb-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="card_id" value="{{ card.id }}">
+                                {% bootstrap_form pay_credit_form %}
+                                <button type="submit" name="pay_credit" class="btn btn-primary w-100">
+                                    Погасить кредит
+                                </button>
+                            </form>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="card_id" value="{{ card.id }}">
+                                <button type="submit" name="close_credit" class="btn btn-danger w-100">
+                                    Закрыть кредитную карту
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
+            {% empty %}
+            <div class="alert alert-info">
+                У вас пока нет кредитных карт
+            </div>
+            {% endfor %}
         </div>
     </div>
-    {% empty %}
-    <div class="alert alert-info">
-        У вас пока нет вкладов
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>Мои вклады</h3>
+        </div>
+        <div class="card-body">
+            {% if not has_active_holding %}
+            <div class="mb-4">
+                <h4>Создание нового вклада</h4>
+                <form method="post">
+                    {% csrf_token %}
+                    {% bootstrap_form create_form %}
+                    <button type="submit" name="create_holding" class="btn btn-success">Создать вклад</button>
+                </form>
+                <p class="mt-2 text-muted">Процентная ставка: 10% ежедневно</p>
+            </div>
+            {% endif %}
+            
+            {% for holding in holdings %}
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Вклад №{{ holding.id }}</span>
+                    <span class="badge {% if holding.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                        {% if holding.is_active %}Активен{% else %}Закрыт{% endif %}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Баланс:</strong> {{ holding.balance|floatformat:2 }} ₽</p>
+                            <p><strong>Счет:</strong> №{{ holding.account.number }}</p>
+                            <p><strong>Дата создания:</strong> {{ holding.created_at|date:"d.m.Y H:i" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            {% if holding.is_active %}
+                            <form method="post" class="mb-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="holding_id" value="{{ holding.id }}">
+                                {% bootstrap_form deposit_form %}
+                                <button type="submit" name="deposit" class="btn btn-primary w-100">Пополнить вклад</button>
+                            </form>
+                            <form method="post" class="mb-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="holding_id" value="{{ holding.id }}">
+                                {% bootstrap_form withdraw_form %}
+                                <button type="submit" name="withdraw" class="btn btn-warning w-100">Изъять средства</button>
+                            </form>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="holding_id" value="{{ holding.id }}">
+                                <button type="submit" name="close" class="btn btn-danger w-100">Закрыть вклад</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-info">
+                У вас пока нет вкладов
+            </div>
+            {% endfor %}
+        </div>
     </div>
-    {% endfor %}
 </div>
 {% endblock %}
