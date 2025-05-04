@@ -17,6 +17,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
         context['accounts'] = accounts
         context['cards'] = cards
+        context['credit_cards'] = user.creditcard_set.all()
 
         main_account = accounts.filter(is_primary=True).first()
         main_card = None

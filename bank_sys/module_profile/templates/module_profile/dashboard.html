@@ -105,19 +105,31 @@
         </div>
     </div>
 
-    <h4>Ваши карты</h4>
-    <ul class="list-group">
-        {% for card in cards %}
-        <li class="list-group-item">
-            **** **** **** {{ card.number|slice:"-4:" }}
-            {% if card.is_primary %}
-                <span class="badge bg-primary ms-2">Основная</span>
-            {% endif %}
-        </li>
-        {% empty %}
-        <li class="list-group-item">Карт пока нет</li>
-        {% endfor %}
-    </ul>
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>Ваши кредитные карты</h4>
+            <ul class="list-group">
+                {% for card in request.user.creditcard_set.all %}
+                <li class="list-group-item">
+                    **** **** **** {{ card.number|slice:"-4:" }}
+                    <span class="badge {% if card.balance < 0 %}bg-danger{% else %}bg-success{% endif %} ms-2">
+                        Баланс: {{ card.balance|floatformat:2 }} ₽
+                    </span>
+                    <span class="badge bg-info ms-2">
+                        Лимит: {{ card.credit_limit|floatformat:2 }} ₽
+                    </span>
+                    {% if card.is_active %}
+                        <span class="badge bg-primary ms-2">Активна</span>
+                    {% else %}
+                        <span class="badge bg-secondary ms-2">Закрыта</span>
+                    {% endif %}
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">Кредитных карт пока нет</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 
 </div>
 {% endblock %}

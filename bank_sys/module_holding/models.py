@@ -92,6 +92,30 @@ class CreditCard(models.Model):
             
             return interest
         return Decimal('0')
+    
+    def withdraw(self, amount):
+        if not self.is_active:
+            raise ValueError("Карта не активна")
+            
+        available = self.credit_limit + self.balance
+        
+        if amount > available:
+            raise ValueError("Превышен кредитный лимит")
+            
+        self.balance -= amount
+        self.save()
+        
+        # запись в историю операций
+        from module_transfers.models import TransactionHistory
+        TransactionHistory.objects.create(
+            user=self.user,
+            transaction_type='credit_withdraw',
+            description=f'Снятие с кредитной карты ****{self.number[-4:]}',
+            amount=amount,
+            card=self
+        )
+        
+        return True
 
     def __str__(self):
         return f"Кредитная карта {self.number} (Баланс: {self.balance} ₽)"

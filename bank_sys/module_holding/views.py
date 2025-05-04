@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Holding, CreditCard
-from .forms import HoldingCreateForm, HoldingDepositForm, HoldingWithdrawForm, CreditCardCreateForm, CreditCardPayForm
+from .forms import HoldingCreateForm, HoldingDepositForm, HoldingWithdrawForm, CreditCardCreateForm, CreditCardPayForm, CreditCardWithdrawForm
 from module_account.models import Account
 from module_transfers.models import TransactionHistory
 from decimal import Decimal
@@ -206,3 +206,23 @@ def holdings_view(request):
         'credit_card_form': credit_card_form,
         'pay_credit_form': pay_credit_form,
     })
+
+@login_required
+def credit_withdraw_view(request):
+    if request.method == 'POST':
+        form = CreditCardWithdrawForm(request.POST, user=request.user)
+        if form.is_valid():
+            card = form.cleaned_data['card']
+            amount = form.cleaned_data['amount']
+            
+            try:
+                card.withdraw(amount)
+                messages.success(request, f"Средства {amount} ₽ успешно сняты с кредитной карты")
+            except ValueError as e:
+                messages.error(request, str(e))
+            
+            return redirect('holdings')
+    else:
+        form = CreditCardWithdrawForm(user=request.user)
+    
+    return render(request, 'module_holding/credit_withdraw.html', {'form': form})

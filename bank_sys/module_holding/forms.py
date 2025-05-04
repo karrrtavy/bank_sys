@@ -46,3 +46,20 @@ class CreditCardPayForm(forms.Form):
         validators=[MinValueValidator(0.01)],
         label="Сумма погашения"
     )
+
+class CreditCardWithdrawForm(forms.Form):
+    card = forms.ModelChoiceField(
+        queryset=CreditCard.objects.none(),
+        label="Кредитная карта"
+    )
+    amount = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
+        label="Сумма снятия"
+    )
+    
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+        self.fields['card'].queryset = CreditCard.objects.filter(user=user, is_active=True)

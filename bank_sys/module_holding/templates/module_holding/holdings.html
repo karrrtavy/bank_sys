@@ -59,21 +59,29 @@
                         </div>
                         <div class="col-md-6">
                             {% if card.is_active %}
-                            <form method="post" class="mb-3">
-                                {% csrf_token %}
-                                <input type="hidden" name="card_id" value="{{ card.id }}">
-                                {% bootstrap_form pay_credit_form %}
-                                <button type="submit" name="pay_credit" class="btn btn-primary w-100">
-                                    Погасить кредит
-                                </button>
-                            </form>
-                            <form method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="card_id" value="{{ card.id }}">
-                                <button type="submit" name="close_credit" class="btn btn-danger w-100">
-                                    Закрыть кредитную карту
-                                </button>
-                            </form>
+                                <form method="post" class="mb-3">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="card_id" value="{{ card.id }}">
+                                    {% bootstrap_form pay_credit_form %}
+                                    <button type="submit" name="pay_credit" class="btn btn-primary w-100">
+                                        Погасить кредит
+                                    </button>
+                                </form>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="card_id" value="{{ card.id }}">
+                                    <button type="submit" name="close_credit" class="btn btn-danger w-100">
+                                        Закрыть кредитную карту
+                                    </button>
+                                </form>
+                            {% endif %}
+                            {% if card.is_active %}
+                                <form method="post" class="mb-3">
+                                    {% csrf_token %}
+                                    <a href="{% url 'credit_withdraw' %}" class="btn btn-outline-danger w-100">
+                                        Снять средства с карты
+                                    </a>
+                                </form>
                             {% endif %}
                         </div>
                     </div>

@@ -87,6 +87,32 @@
                     <div>{{ item.description }}</div>
                     <small class="text-muted">{{ item.timestamp|date:"d.m.Y H:i" }}</small>
                 </div>
+                {% elif item.transaction_type == 'credit_withdraw' %}
+                <div class="list-group-item list-group-item-danger mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Снятие с кредитной карты</strong>
+                            {% if item.card %}
+                                ****{{ item.card.number|slice:"-4:" }}
+                            {% endif %}
+                        </div>
+                        <span class="fw-bold text-danger">-{{ item.amount }} ₽</span>
+                    </div>
+                    <small class="text-muted">{{ item.timestamp|date:"d.m.Y H:i" }}</small>
+                </div>
+                {% elif item.transaction_type == 'credit_payment' %}
+                <div class="list-group-item list-group-item-success mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Погашение кредита</strong>
+                            {% if item.card %}
+                                ****{{ item.card.number|slice:"-4:" }}
+                            {% endif %}
+                        </div>
+                        <span class="fw-bold text-success">+{{ item.amount }} ₽</span>
+                    </div>
+                    <small class="text-muted">{{ item.timestamp|date:"d.m.Y H:i" }}</small>
+                </div>
             {% else %}
                 <div class="list-group-item mb-2">
                     <div>{{ item.description }}</div>

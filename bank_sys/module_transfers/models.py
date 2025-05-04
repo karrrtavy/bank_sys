@@ -16,6 +16,8 @@ class TransactionHistory(models.Model):
         ('holding_withdraw', 'Изъятие с вклада'),
         ('holding_interest', 'Начисление процентов'),
         ('holding_close', 'Закрытие вклада'),
+        ('credit_withdraw', 'Снятие с кредитной карты'),
+        ('credit_payment', 'Погашение кредита'),
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
