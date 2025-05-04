@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from .views import AccountDetailView, AccountCreateView, CardCreateView, AccountDeleteView, CardDeleteView, CardMakePrimaryView, AccountMakePrimaryView
+from .views import AccountDetailView, AccountCreateView, CardCreateView, AccountDeleteView, CardDeleteView, CardMakePrimaryView, AccountMakePrimaryView, AccountStatementView
 
 urlpatterns = [
     path('account/<int:pk>/', AccountDetailView.as_view(), name='account_detail'),
@@ -10,4 +10,5 @@ urlpatterns = [
     path('card/<int:card_id>/delete/', CardDeleteView.as_view(), name='card_delete'),
     path('card/<int:card_id>/make_primary/', CardMakePrimaryView.as_view(), name='card_make_primary'),
     path('account/<int:pk>/make_primary/', AccountMakePrimaryView.as_view(), name='account_make_primary'),
+    path('account/<int:pk>/statement/', AccountStatementView.as_view(), name='account_statement'),
 ]

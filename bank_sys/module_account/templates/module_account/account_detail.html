@@ -16,6 +16,11 @@
             <form method="get" action="{% url 'account_delete' account.id %}" class="mb-3">
                 <button type="submit" class="btn btn-danger w-100">Удалить счет</button>
             </form>
+            <div class="mb-3">
+                <a href="{% url 'account_statement' account.id %}" class="btn btn-info w-100">
+                    <i class="bi bi-file-earmark-pdf"></i> Сформировать выписку (PDF)
+                </a>
+            </div>
         </h3>
         <p><strong>Общий баланс по картам:</strong> {{ account.cards_total_balance|floatformat:2 }} ₽</p>
         
