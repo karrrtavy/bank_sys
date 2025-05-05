@@ -4,6 +4,21 @@ from .models import TransactionHistory
 
 @staticmethod
 def transfer_by_card(sender_card, receiver_card_number, amount):
+    """
+    @brief Выполняет перевод средств с одной карты на другую.
+    @details Проверяет наличие достаточного баланса на счёте отправителя,
+             списывает сумму с аккаунта отправителя и зачисляет на аккаунт получателя,
+             создаёт записи в истории транзакций для обеих сторон.
+    
+    @param sender_card Объект карты отправителя (Card).
+    @param receiver_card_number Номер карты получателя (str).
+    @param amount Сумма перевода (Decimal или float).
+    
+    @var receiver_card Объект карты получателя, блокируемый для обновления (select_for_update).
+    
+    @throws ValueError Если недостаточно средств на счёте отправителя.
+    @return None
+    """
     receiver_card = Card.objects.select_for_update().get(
         number=receiver_card_number
     )

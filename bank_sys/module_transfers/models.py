@@ -5,6 +5,22 @@ from module_card.models import Card
 
 # Create your models here.
 class TransactionHistory(models.Model):
+    """
+    @brief Модель истории транзакций пользователя.
+    @details Хранит информацию о различных типах транзакций, связанных с пользователем,
+             счетами и картами, включая описание, дату и сумму операции.
+    
+    @var TRANSACTION_TYPES Кортеж с возможными типами транзакций и их описаниями.
+    @var user Внешний ключ на пользователя (User), которому принадлежит транзакция.
+    @var transaction_type Тип транзакции, выбирается из TRANSACTION_TYPES.
+    @var description Текстовое описание транзакции.
+    @var timestamp Дата и время создания записи, устанавливается автоматически.
+    @var source_account Счет-источник транзакции (может быть null).
+    @var target_account Счет-получатель транзакции (может быть null).
+    @var card Карта, связанная с транзакцией (может быть null).
+    @var amount Сумма транзакции (может быть null).
+    """
+
     TRANSACTION_TYPES = (
         ('account_create', 'Создание счета'),
         ('account_delete', 'Удаление счета'),
@@ -30,4 +46,8 @@ class TransactionHistory(models.Model):
     amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
+        """
+        @brief Строковое представление объекта TransactionHistory.
+        @return str Отображает тип транзакции и дату/время её создания.
+        """
         return f"{self.get_transaction_type_display()} - {self.timestamp}"

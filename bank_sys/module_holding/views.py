@@ -2,24 +2,48 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Holding, CreditCard
-from .forms import HoldingCreateForm, HoldingDepositForm, HoldingWithdrawForm, CreditCardCreateForm, CreditCardPayForm, CreditCardWithdrawForm
+from .forms import (
+    HoldingCreateForm, HoldingDepositForm, HoldingWithdrawForm,
+    CreditCardCreateForm, CreditCardPayForm, CreditCardWithdrawForm
+)
 from module_account.models import Account
 from module_transfers.models import TransactionHistory
 from decimal import Decimal
 
-# Create your views here.
-
-
 @login_required
 def holdings_view(request):
+    """
+    @brief Представление для управления вкладами и кредитными картами пользователя.
+    @details Позволяет создавать, пополнять, снимать и закрывать вклады, а также управлять кредитными картами.
+    Обрабатывает различные POST-запросы, связанные с этими действиями, и отображает соответствующие формы и списки.
+
+    @param request Объект HTTP-запроса Django.
+
+    @var holdings QuerySet вкладов пользователя.
+    @var has_active_holding Логический флаг наличия активного вклада.
+    @var credit_cards QuerySet кредитных карт пользователя.
+    @var has_active_credit_card Логический флаг наличия активной кредитной карты.
+    @var create_form Форма создания вклада.
+    @var deposit_form Форма пополнения вклада.
+    @var withdraw_form Форма изъятия с вклада.
+    @var credit_card_form Форма создания кредитной карты.
+    @var pay_credit_form Форма погашения кредита.
+    @var holding_id Идентификатор вклада, с которым производится операция.
+    @var holding Экземпляр модели Holding, с которым производится операция.
+    @var amount Сумма операции (пополнение, снятие, погашение и т.д.).
+    @var main_card Основная карта, связанная с аккаунтом вклада или кредитной карты.
+    @var card_id Идентификатор кредитной карты.
+    @var card Экземпляр модели CreditCard, с которым производится операция.
+    @var credit_limit Кредитный лимит, рассчитываемый для новой кредитной карты.
+
+    @return HttpResponse Рендерит страницу с формами и списками или перенаправляет после обработки POST-запроса.
+    """
     holdings = Holding.objects.filter(user=request.user)
     has_active_holding = holdings.filter(is_active=True).exists()
-    
     credit_cards = CreditCard.objects.filter(user=request.user)
     has_active_credit_card = credit_cards.filter(is_active=True).exists()
     
     if request.method == 'POST':
-        # обработка форм для вкладов
         if 'create_holding' in request.POST:
             create_form = HoldingCreateForm(request.POST, user=request.user)
             if create_form.is_valid():
@@ -35,17 +59,14 @@ def holdings_view(request):
                 holding = Holding.objects.get(id=holding_id, user=request.user)
                 amount = deposit_form.cleaned_data['amount']
                 
-                # проверка, что у пользователя есть средства для пополнения
                 if holding.account.cards_total_balance >= amount:
                     holding.balance += amount
                     holding.save()
                     
-                    # списание с основной карты счета
                     main_card = holding.account.card_set.filter(is_primary=True).first()
                     if main_card:
                         main_card.balance -= amount
                         main_card.save()
-                    
                     TransactionHistory.objects.create(
                         user=request.user,
                         transaction_type='holding_deposit',
@@ -65,12 +86,10 @@ def holdings_view(request):
                 holding_id = request.POST.get('holding_id')
                 holding = Holding.objects.get(id=holding_id, user=request.user)
                 amount = withdraw_form.cleaned_data['amount']
-                
                 if holding.balance >= amount:
                     holding.balance -= amount
                     holding.save()
                     
-                    # зачисление на основную карту счета
                     main_card = holding.account.card_set.filter(is_primary=True).first()
                     if main_card:
                         main_card.balance += amount
@@ -92,14 +111,11 @@ def holdings_view(request):
         elif 'close' in request.POST:
             holding_id = request.POST.get('holding_id')
             holding = Holding.objects.get(id=holding_id, user=request.user)
-            
-            # возвращение средства на счет
             if holding.balance > 0:
                 main_card = holding.account.card_set.filter(is_primary=True).first()
                 if main_card:
                     main_card.balance += holding.balance
                     main_card.save()
-                    
                     TransactionHistory.objects.create(
                         user=request.user,
                         transaction_type='holding_withdraw',
@@ -108,27 +124,22 @@ def holdings_view(request):
                         target_account=holding.account,
                         card=main_card
                     )
-            
             holding.is_active = False
             holding.save()
-            
             TransactionHistory.objects.create(
                 user=request.user,
                 transaction_type='holding_close',
                 description=f'Закрытие вклада №{holding.id}',
                 source_account=holding.account
             )
-            
             messages.success(request, "Вклад успешно закрыт")
             return redirect('holdings')
         
-        # обработка форм для кредитных карт
         elif 'create_credit_card' in request.POST:
             create_form = CreditCardCreateForm(request.POST, user=request.user)
             if create_form.is_valid():
                 account = create_form.cleaned_data['account']
                 credit_limit = request.user.income * Decimal('0.5')
-                
                 if not CreditCard.objects.filter(user=request.user, is_active=True).exists():
                     credit_card = CreditCard.objects.create(
                         user=request.user,
@@ -146,16 +157,12 @@ def holdings_view(request):
                 card_id = request.POST.get('card_id')
                 card = CreditCard.objects.get(id=card_id, user=request.user)
                 amount = pay_form.cleaned_data['amount']
-                
-                # проверяем, что у пользователя есть средства для погашения
                 main_card = card.account.card_set.filter(is_primary=True).first()
                 if main_card and main_card.balance >= amount:
                     main_card.balance -= amount
                     main_card.save()
-                    
                     card.balance += amount
                     card.save()
-                    
                     TransactionHistory.objects.create(
                         user=request.user,
                         transaction_type='credit_payment',
@@ -164,10 +171,7 @@ def holdings_view(request):
                         source_account=card.account,
                         card=main_card
                     )
-                    
                     messages.success(request, f"Кредит погашен на {amount} ₽")
-                    
-                    # закрытие карты, когда кредит погашен
                     if card.balance >= 0:
                         card.is_active = False
                         card.save()
@@ -179,7 +183,6 @@ def holdings_view(request):
         elif 'close_credit' in request.POST:
             card_id = request.POST.get('card_id')
             card = CreditCard.objects.get(id=card_id, user=request.user)
-            
             if card.balance >= 0:
                 card.is_active = False
                 card.save()
@@ -207,20 +210,32 @@ def holdings_view(request):
         'pay_credit_form': pay_credit_form,
     })
 
+
 @login_required
 def credit_withdraw_view(request):
+    """
+    @brief Представление для снятия средств с кредитной карты.
+    @details Обрабатывает форму снятия средств с кредитной карты, вызывает метод withdraw у CreditCard.
+    В случае успеха или ошибки выводит соответствующее сообщение и перенаправляет пользователя.
+
+    @param request Объект HTTP-запроса Django.
+
+    @var form Форма снятия средств с кредитной карты.
+    @var card Экземпляр CreditCard, с которой производится снятие.
+    @var amount Сумма снятия.
+
+    @return HttpResponse Рендерит страницу с формой или перенаправляет после обработки POST-запроса.
+    """
     if request.method == 'POST':
         form = CreditCardWithdrawForm(request.POST, user=request.user)
         if form.is_valid():
             card = form.cleaned_data['card']
             amount = form.cleaned_data['amount']
-            
             try:
                 card.withdraw(amount)
                 messages.success(request, f"Средства {amount} ₽ успешно сняты с кредитной карты")
             except ValueError as e:
                 messages.error(request, str(e))
-            
             return redirect('holdings')
     else:
         form = CreditCardWithdrawForm(user=request.user)

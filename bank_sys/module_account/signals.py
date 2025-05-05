@@ -7,6 +7,17 @@ from module_transfers.models import TransactionHistory
 
 @receiver(post_save, sender=User)
 def create_user_account(sender, instance, created, **kwargs):
+    """
+    @brief Обработчик сигнала post_save для модели User.
+    @details Автоматически создаёт основной аккаунт и основную карту при создании нового пользователя.
+    
+    @param sender Класс модели, который вызвал сигнал (User).
+    @param instance Экземпляр модели User, который был сохранён.
+    @param created Логический флаг, указывающий, был ли создан новый объект (True при создании).
+    @param kwargs Дополнительные параметры сигнала.
+    
+    @return None
+    """
     if created:
         account = Account.objects.create(
             user=instance,

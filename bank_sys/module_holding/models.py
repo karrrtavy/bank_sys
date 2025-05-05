@@ -20,17 +20,14 @@ class Holding(models.Model):
         if not self.is_active:
             return
         
-        # рассчет количества минут с последнего начисления
         minutes_passed = (now - self.last_interest_date).total_seconds() / 60
         
-        if minutes_passed >= 1:  # Если прошла хотя бы 1 минута
-            # +10% каждую минуту
+        if minutes_passed >= 1:
             interest = self.balance * Decimal('0.10') * Decimal(minutes_passed)
             self.balance += interest
             self.last_interest_date = now
             self.save()
             
-            # запись в историю операций
             from module_transfers.models import TransactionHistory
             TransactionHistory.objects.create(
                 user=self.user,
@@ -105,7 +102,6 @@ class CreditCard(models.Model):
         self.balance -= amount
         self.save()
         
-        # запись в историю операций
         from module_transfers.models import TransactionHistory
         TransactionHistory.objects.create(
             user=self.user,

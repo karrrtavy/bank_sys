@@ -9,6 +9,33 @@ from module_holding.models import CreditCard
 
 @login_required
 def transfer_view(request):
+    """
+    @brief Представление для выполнения переводов между счетами и картами.
+    @details Обрабатывает форму перевода, проверяет валидность данных, принадлежность счетов/карт пользователю,
+             наличие достаточного баланса, выполняет списание и зачисление средств,
+             а также создаёт записи в истории транзакций.
+             Запрещает переводы при наличии непогашенного кредита.
+    
+    @param request Объект HTTP-запроса Django.
+    
+    @var form Объект формы TransferForm.
+    @var transfer_from Тип источника списания ('account' или 'card').
+    @var transfer_to Тип получателя ('account' или 'card').
+    @var amount Сумма перевода.
+    @var receiver_number Номер счета или карты получателя.
+    @var sender_account Объект счета отправителя (если выбран счет).
+    @var sender_card Объект карты отправителя (если выбрана карта).
+    @var sender_label Строка для отображения отправителя в описании транзакции.
+    @var sender_balance Баланс карты отправителя.
+    @var sender_user Пользователь, владеющий счетом/картой отправителя.
+    @var receiver_account Объект счета получателя (если выбран счет).
+    @var receiver_card Объект карты получателя (если выбрана карта).
+    @var receiver_label Строка для отображения получателя в описании транзакции.
+    @var receiver_user Пользователь, владеющий счетом/картой получателя.
+    @var has_negative_credit Логический флаг наличия непогашенного кредита у пользователя.
+    
+    @return HttpResponse Рендерит страницу с формой перевода или перенаправляет после успешного/неудачного перевода.
+    """
     if request.method == 'POST':
         form = TransferForm(request.POST, user=request.user)
         if form.is_valid():
@@ -17,10 +44,8 @@ def transfer_view(request):
             amount = form.cleaned_data['amount']
             receiver_number = form.cleaned_data['receiver_number']
 
-            # 1. определение источника списания
             if transfer_from == 'account':
                 sender_account = form.cleaned_data['sender_account']
-                # поиск основной карты отправителя
                 sender_card = Card.objects.filter(account=sender_account, is_primary=True).first()
                 if not sender_card:
                     messages.error(request, "У вашего счета нет основной карты для списания.")
@@ -34,18 +59,15 @@ def transfer_view(request):
                 sender_balance = sender_card.balance
                 sender_user = sender_card.account.user
 
-            # проверка принадлежности
             if sender_user != request.user:
                 messages.error(request, "Вы не можете переводить с чужого счета/карты.")
                 return redirect('transfer')
 
-            # определение получателя
             if transfer_to == 'account':
                 receiver_account = Account.objects.filter(number=receiver_number).first()
                 if not receiver_account:
                     messages.error(request, "Счет получателя не найден.")
                     return redirect('transfer')
-                # поиск основной карты счета-получателя
                 receiver_card = Card.objects.filter(account=receiver_account, is_primary=True).first()
                 if not receiver_card:
                     messages.error(request, "У счета-получателя нет основной карты.")
@@ -60,26 +82,22 @@ def transfer_view(request):
                 receiver_label = f"Карта ****{receiver_card.number[-4:]}"
                 receiver_user = receiver_card.account.user
 
-            # проверка баланса
             if sender_balance < amount:
                 messages.error(request, "Недостаточно средств.")
                 return redirect('transfer')
 
-            # списание
             sender_card.balance -= amount
             sender_card.save()
 
-            # зачисление
             receiver_card.balance += amount
             receiver_card.save()
 
-            # история переводов
             TransactionHistory.objects.create(
                 user=sender_user,
                 transaction_type='transfer_out',
                 description=f'Перевод на {receiver_label}',
                 source_account=sender_account if transfer_from == 'account' else None,
-                card=sender_card if transfer_from == 'card' or transfer_from == 'account' else None,
+                card=sender_card if transfer_from in ['card', 'account'] else None,
                 target_account=receiver_account if transfer_to == 'account' else None,
                 amount=amount
             )
@@ -88,15 +106,15 @@ def transfer_view(request):
                 transaction_type='transfer_in',
                 description=f'Зачисление с {sender_label}',
                 source_account=sender_account if transfer_from == 'account' else None,
-                card=sender_card if transfer_from == 'card' or transfer_from == 'account' else None,
+                card=sender_card if transfer_from in ['card', 'account'] else None,
                 target_account=receiver_account if transfer_to == 'account' else None,
                 amount=amount
             )
 
             has_negative_credit = CreditCard.objects.filter(
-            user=request.user, 
-            is_active=True, 
-            balance__lt=0
+                user=request.user, 
+                is_active=True, 
+                balance__lt=0
             ).exists()
     
             if has_negative_credit:
