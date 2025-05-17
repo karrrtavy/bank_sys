@@ -6,10 +6,28 @@ from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt, Confirm
 from datetime import datetime
+from django.conf import settings
 
-# Настройка Django окружения
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bank_sys.settings')
+from PyInstaller.utils.hooks import copy_metadata
+
+datas = copy_metadata('django_bootstrap5')
+
+settings.configure(
+    INSTALLED_APPS=[
+        'module_auth',
+        'module_account',
+        'module_card',
+        'module_transfers',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+    ],
+    DATABASES={
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(os.path.dirname(__file__), 'db.sqlite3'),
+        }
+    }
+)
 django.setup()
 
 from module_auth.models import User

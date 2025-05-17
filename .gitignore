@@ -6,3 +6,7 @@ db.sqlite3
 code.txt
 /.VSCodeCounter
 html
+dist
+build
+bank_admin_cli.spec
+bank_admin_setup.iss
